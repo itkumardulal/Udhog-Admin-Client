@@ -1,7 +1,13 @@
 import React, { useEffect, useState } from "react";
-import { API } from "../http";
+import { API, apiAuthenticated } from "../http";
+import { Link, useNavigate, useParams } from "react-router-dom";
+import { toast ,ToastContainer} from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
 
 const Company = () => {
+  const navigate = useNavigate()
+
   const headers = {
     sn: "S.N.",
     registrationNo: "Registration No",
@@ -37,8 +43,31 @@ const Company = () => {
     fetchCompanies();
   }, []);
 
+ const deleteCompany = async (companyId) => {
+  try {
+    const response = await apiAuthenticated.delete(`company/${companyId}`);
+    if (response.status === 200) {
+      toast.success("Company deleted successfully!");
+
+      
+      setTimeout(() => {
+        fetchCompanies();             
+        navigate("/view/companies");  
+      }, 2000); 
+    } else {
+      toast.error("Something went wrong");
+    }
+  } catch (error) {
+    toast.error("Error deleting company");
+    console.error(error);
+  }
+};
+
+
+
   return (
     <div className="min-h-screen p-8 bg-gray-100">
+       <ToastContainer position="top-right" autoClose={1000} />
       <h2 className="text-2xl font-semibold text-gray-800 mb-6">
         Company List
       </h2>
@@ -75,8 +104,8 @@ const Company = () => {
                     <td className="p-4 text-left whitespace-nowrap">{company.industry}</td>
                     <td className="p-4 text-left whitespace-nowrap">{company.contactPerson}</td>
                     <td className="p-4 text-left whitespace-nowrap">{company.phoneNo}</td>
-                    <td className="p-4 text-left whitespace-nowrap">{company.VAT || '-'}</td>
-                    <td className="p-4 text-left whitespace-nowrap">{company.PAN || '-'}</td>
+                    <td className="p-4 text-left whitespace-nowrap">{company.vat || '-'}</td>
+                    <td className="p-4 text-left whitespace-nowrap">{company.pan || '-'}</td>
                     <td className="p-4 text-left whitespace-nowrap">{company.annualRevenue}</td>
                     <td className="p-4 text-left whitespace-nowrap">{company.numberOfEmployees}</td>
                     <td className="p-4 text-left whitespace-nowrap">
@@ -93,7 +122,9 @@ const Company = () => {
                     <td className="p-4 text-left whitespace-nowrap">
                       <div className="flex gap-2 items-center">
                         {/* Edit Button */}
-                        <button className="p-2  rounded-full bg-white group transition-all duration-500 hover:bg-indigo-600 flex item-center">
+                       <Link to={`/edit/company/${company.id}`} key={company.id}>
+                        <button 
+                        className="p-2  rounded-full bg-white group transition-all duration-500 hover:bg-indigo-600 flex item-center">
                           <svg
                             className="cursor-pointer"
                             width={20}
@@ -109,9 +140,14 @@ const Company = () => {
                             />
                           </svg>
                         </button>
+                       </Link>
 
                         {/* Delete Button */}
-                        <button className="p-2 rounded-full bg-white group transition-all duration-500 hover:bg-red-600 flex item-center">
+                        <button
+                          key={company.id}
+                          onClick={() => deleteCompany(company.id)}
+                          className="p-2 rounded-full bg-white group transition-all duration-500 hover:bg-red-600 flex item-center"
+                        >
                           <svg
                             className="w-5 h-5 text-red-500 group-hover:text-white"
                             fill="currentColor"

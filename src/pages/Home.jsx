@@ -2,9 +2,9 @@ import StatusChart from "../components/StatusChart";
 
 const Home = () => {
   return (
-    <>
+    <div className="min-h-screen flex flex-col overflow-hidden bg-gray-100">
+      {/* Top Stats */}
       <div className="px-6 md:px-12 lg:px-20 py-4">
-        {/* Use grid layout with smaller gap-y and possibly combine in one section */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="bg-white p-4 rounded-lg shadow">
             <p className="text-sm text-gray-500">Total Company</p>
@@ -21,14 +21,14 @@ const Home = () => {
         </div>
       </div>
 
-      {/* Chart section with adjusted padding and height */}
-      <div className="px-6 md:px-12 lg:px-20 py-2">
-        <div className="bg-white p-4 rounded-lg shadow-md">
+      {/* Chart section - Flexible height */}
+      <div className="px-6 md:px-12 lg:px-20 py-2 flex-grow">
+        <div className="bg-white p-4 rounded-lg shadow-md h-full">
           <StatusChart />
         </div>
       </div>
 
-      {/* Buttons section */}
+      {/* Buttons */}
       <div className="px-6 md:px-12 lg:px-20 py-4">
         <div className="bg-white p-4 rounded-lg shadow-md">
           <div className="flex flex-wrap justify-evenly items-center gap-4">
@@ -44,7 +44,7 @@ const Home = () => {
           </div>
         </div>
       </div>
-    </>
+    </div>
   );
 };
 

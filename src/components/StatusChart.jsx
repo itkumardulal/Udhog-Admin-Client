@@ -11,10 +11,10 @@ const StatusChart = () => {
       labels: ['Active', 'Inactive'],
       datasets: [
         {
-          data: [10, 4], // ✅ One dataset with both values
-          backgroundColor: ['#22c55e', '#ef4444'], // Green & Red
-          borderRadius: 10,
-          barThickness: 80,
+          data: [10, 4],
+          backgroundColor: ['#22c55e', '#ef4444'],
+          borderRadius: 8,
+          barThickness: 60,
         },
       ],
     };
@@ -28,35 +28,21 @@ const StatusChart = () => {
         plugins: {
           legend: {
             display: false,
-            position: 'top',
-            labels: {
-              font: {
-                size: 16,
-              },
-              usePointStyle: true,
-              pointStyle: 'rectRounded',
-              padding: 20,
-              color: '#374151',
-            },
           },
         },
         layout: {
           padding: {
-            top: 30,
+            top: 20,
             bottom: 10,
-            left: 20,
-            right: 20,
+            left: 10,
+            right: 10,
           },
         },
         scales: {
           x: {
-            grid: {
-              display: false,
-            },
+            grid: { display: false },
             ticks: {
-              font: {
-                size: 14,
-              },
+              font: { size: 13 },
               color: '#4b5563',
             },
           },
@@ -64,9 +50,7 @@ const StatusChart = () => {
             beginAtZero: true,
             ticks: {
               stepSize: 2,
-              font: {
-                size: 14,
-              },
+              font: { size: 13 },
               color: '#4b5563',
             },
             grid: {
@@ -79,16 +63,15 @@ const StatusChart = () => {
     };
 
     const chartInstance = new Chart(ctx, config);
-
-    return () => {
-      chartInstance.destroy();
-    };
+    return () => chartInstance.destroy();
   }, []);
 
   return (
-    <div className="bg-white p-10 rounded-2xl shadow-2xl w-full max-w-5xl mx-auto">
-      <h1 className="text-2xl font-bold text-gray-800 mb-6 text-center">📊 Company Status Report</h1>
-      <div className="relative h-[500px] w-full">
+    <div className="bg-white p-6 rounded-xl shadow-lg w-full max-w-3xl mx-auto">
+      <h2 className="text-xl font-semibold text-gray-700 mb-4 text-center">
+        📊 Company Status Overview
+      </h2>
+      <div className="relative h-[300px] w-full bg-gray-50 rounded-lg p-2">
         <canvas ref={chartRef} />
       </div>
     </div>

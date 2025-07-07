@@ -3,6 +3,9 @@ import * as filestack from 'filestack-js';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { apiAuthenticated } from '../../http';
+import { useNavigate } from 'react-router-dom';
+
+
 
 const apikey = import.meta.env.VITE_FILESTACK_API_KEY;
 const client = filestack.init(apikey);
@@ -41,13 +44,13 @@ const CompanyForm = () => {
     }));
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e) => { 
     e.preventDefault();
     setSubmitting(true);
 
     try {
       const payload = { ...data, pdfUrl, pdfName };
-      const response = await apiAuthenticated.post('/company', payload);
+      const response = await apiAuthenticated  .post('/company', payload);
 
       if (response.status === 201) {
         toast.success('Company details submitted successfully!');
@@ -71,7 +74,7 @@ const CompanyForm = () => {
         setPdfUrl('');
         setPdfName('');
         if (fileInputRef.current) {
-          fileInputRef.current.value = null; // ✅ Reset file input
+          fileInputRef.current.value = null; 
         }
       } else {
         toast.error("Failed to submit company details");
@@ -111,6 +114,8 @@ const CompanyForm = () => {
       setUploading(false);
     }
   };
+
+
 
   return (
     <div className="bg-white border border-gray-200 rounded-xl shadow-lg p-8 max-w-7xl mx-auto">

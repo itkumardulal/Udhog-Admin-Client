@@ -8,15 +8,12 @@ import { apiAuthenticated } from '../../http';
 const apikey = 'YOUR_FILESTACK_API_KEY';
 const client = filestack.init(apikey);
 
-const CompanyForm = () => {
+const CompanyEdit = () => {
   const { id } = useParams();
   const navigate = useNavigate();
 
   const [data, setData] = useState({});
   const [idType, setIdType] = useState('vat');
-  const [vat, setVat] = useState('');
-  const [pan, setPan] = useState('');
-  const [description, setDescription] = useState('');
   const [pdfUrl, setPdfUrl] = useState('');
   const [pdfName, setPdfName] = useState('');
   const [uploading, setUploading] = useState(false);
@@ -27,12 +24,9 @@ const CompanyForm = () => {
       if (response.status === 200) {
         const company = response.data.data;
         setData(company);
-        setDescription(company.description || "");
-        setVat(company.vat || "");
-        setPan(company.pan || "");
         setIdType(company.vat ? 'vat' : 'pan');
-        setPdfUrl(company.pdfUrl || "");
-        setPdfName(company.pdfName || "");
+        setPdfUrl(company.pdfUrl || '');
+        setPdfName(company.pdfName || '');
       } else {
         toast.error("Failed to fetch company details");
       }
@@ -83,17 +77,16 @@ const CompanyForm = () => {
     try {
       const payload = {
         ...data,
-        vat: idType === 'vat' ? vat : null,
-        pan: idType === 'pan' ? pan : null,
-        description,
+        vat: idType === 'vat' ? data.vat : null,
+        pan: idType === 'pan' ? data.pan : null,
         pdfUrl,
-        pdfName
+        pdfName,
       };
 
-      const response = await apiAuthenticated.put(`company/${id}`, payload);
+      const response = await apiAuthenticated.patch(`company/${id}`, payload);
       if (response.status === 200) {
         toast.success('Company details updated successfully!');
-        navigate('/company');
+        navigate('/view/companies');
       } else {
         toast.error("Failed to update company details");
       }
@@ -132,13 +125,13 @@ const CompanyForm = () => {
                 onChange={handleChange}
                 placeholder={field.placeholder}
                 className="shadow-sm bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg 
-                focus:ring-indigo-600 focus:border-indigo-600 block w-full p-2.5"
+                  focus:ring-indigo-600 focus:border-indigo-600 block w-full p-2.5"
                 required
               />
             </div>
           ))}
 
-          {/* Renew Status Dropdown */}
+          {/* Renew Status */}
           <div>
             <label htmlFor="renewStatus" className="text-sm font-medium text-gray-900 block mb-2">
               Renew Status
@@ -149,17 +142,17 @@ const CompanyForm = () => {
               value={data.renewStatus || ""}
               onChange={handleChange}
               className="shadow-sm bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg 
-              focus:ring-indigo-600 focus:border-indigo-600 block w-full p-2.5"
+                focus:ring-indigo-600 focus:border-indigo-600 block w-full p-2.5"
               required
             >
-              <option value="">-- Select Status --</option>
+              
               <option value="Active">Active</option>
               <option value="Inactive">Inactive</option>
             </select>
           </div>
         </div>
 
-        {/* VAT/PAN Toggle */}
+        {/* VAT / PAN */}
         <div className="mt-10">
           <label className="block text-sm font-medium text-gray-900 mb-2">Choose VAT/PAN</label>
           <div className="flex space-x-6">
@@ -195,11 +188,11 @@ const CompanyForm = () => {
                   type="text"
                   id="vat"
                   name="vat"
-                  value={vat}
-                  onChange={(e) => setVat(e.target.value)}
+                  value={data.vat || ''}
+                  onChange={handleChange}
                   placeholder="Enter VAT Number"
                   className="shadow-sm bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg 
-                  focus:ring-indigo-600 focus:border-indigo-600 block w-full p-2.5"
+                    focus:ring-indigo-600 focus:border-indigo-600 block w-full p-2.5"
                   required
                 />
               </div>
@@ -211,11 +204,11 @@ const CompanyForm = () => {
                   type="text"
                   id="pan"
                   name="pan"
-                  value={pan}
-                  onChange={(e) => setPan(e.target.value)}
+                  value={data.pan || ''}
+                  onChange={handleChange}
                   placeholder="Enter PAN Number"
                   className="shadow-sm bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg 
-                  focus:ring-indigo-600 focus:border-indigo-600 block w-full p-2.5"
+                    focus:ring-indigo-600 focus:border-indigo-600 block w-full p-2.5"
                   required
                 />
               </div>
@@ -231,20 +224,20 @@ const CompanyForm = () => {
           <textarea
             id="description"
             name="description"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
+            value={data.description || ''}
+            onChange={handleChange}
             placeholder="Enter a brief description about the company..."
             rows="4"
             className="shadow-sm bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg 
-            focus:ring-indigo-600 focus:border-indigo-600 block w-full p-2.5"
+              focus:ring-indigo-600 focus:border-indigo-600 block w-full p-2.5"
           ></textarea>
         </div>
 
-        {/* PDF Upload Field */}
+        {/* PDF Upload */}
         <div className="mt-6">
           <label className="text-sm font-medium text-gray-900 block mb-2">Upload Company PDF</label>
           <div className="relative group border-2 border-dashed border-blue-500 bg-gray-50 rounded-lg h-32 flex flex-col justify-center items-center hover:bg-blue-50 transition-colors duration-300">
-            <svg xmlns="http://www.w3.org/2000/svg" className="w-10 h-10 text-blue-600 mb-1 transition-transform duration-300 group-hover:scale-110" fill="currentColor" viewBox="0 0 24 24">
+            <svg xmlns="http://www.w3.org/2000/svg" className="w-10 h-10 text-blue-600 mb-1" fill="currentColor" viewBox="0 0 24 24">
               <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" opacity=".3" />
               <path d="M14 2v6h6" />
               <path d="M16 13H8v-2h8v2zm0 4H8v-2h8v2z" />
@@ -261,7 +254,7 @@ const CompanyForm = () => {
           </div>
         </div>
 
-        {/* Submit */}
+        {/* Submit Button */}
         <div className="mt-8">
           <button
             type="submit"
@@ -275,4 +268,4 @@ const CompanyForm = () => {
   );
 };
 
-export default CompanyForm;
+export default CompanyEdit;

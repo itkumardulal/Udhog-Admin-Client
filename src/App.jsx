@@ -8,6 +8,7 @@ import Notice from './components/view/Notice';
 import NoticeForm from './components/addform/NoticeForm';
 import Home from './pages/Home';
 import Login from './components/auth/Login';
+import CompanyEdit from './pages/editpage/CompanyEdit';
 
 const App = () => {
   return (
@@ -22,6 +23,7 @@ const App = () => {
           <Route path="view/companies" element={<CompanyTable />} />
           <Route path="view/notices" element={<Notice />} />
           <Route path="view/news" element={<News />} />
+         <Route path="edit/company/:id" element={<CompanyEdit />} />
         </Route>
       </Routes>
     </Router>
