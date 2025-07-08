@@ -3,7 +3,7 @@ import * as filestack from 'filestack-js';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { apiAuthenticated } from '../../http';
-import { useNavigate } from 'react-router-dom';
+
 
 
 
@@ -50,7 +50,7 @@ const CompanyForm = () => {
 
     try {
       const payload = { ...data, pdfUrl, pdfName };
-      const response = await apiAuthenticated  .post('/company', payload);
+      const response = await apiAuthenticated.post('/company', payload);
 
       if (response.status === 201) {
         toast.success('Company details submitted successfully!');

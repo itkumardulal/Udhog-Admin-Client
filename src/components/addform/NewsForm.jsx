@@ -1,39 +1,57 @@
 import React, { useState } from 'react';
 import * as filestack from 'filestack-js';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { apiAuthenticated } from '../../http';
+import { useNavigate } from 'react-router-dom';
 
-const client = filestack.init('YOUR_FILESTACK_API_KEY');
+const client = filestack.init(import.meta.env.VITE_FILESTACK_API_KEY);
 
 const NewsForm = () => {
+  const navigate = useNavigate();
   const [preview, setPreview] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [imageName, setImageName] = useState('');
   const [imageUrl, setImageUrl] = useState('');
+  const [formData, setFormData] = useState({
+    title: '',
+    description: '',
+  });
+  const [submitting, setSubmitting] = useState(false);
 
-  const handleImageUpload = async (file) => {
-    if (!file || !file.type.startsWith('image/')) {
-      alert('Only image files are allowed.');
+  const previewFile = (file) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => setPreview(reader.result);
+  };
+
+  const uploadImage = async (file) => {
+    if (!file.type.startsWith('image/')) {
+      toast.error('Only image files are allowed');
       return;
     }
 
     if (file.size > 1024 * 1024) {
-      alert('File must be less than 1MB');
+      toast.error('Image must be less than 1MB');
       return;
     }
 
     setUploading(true);
-
     try {
-      const response = await client.upload(file, {
+      const result = await client.upload(file, {
         onProgress: (evt) => {
-          // console.log('Uploading:', evt.totalPercent);
-        }
+          // Optional: handle progress here
+          // console.log(`Upload progress: ${evt.totalPercent.toFixed(2)}%`);
+        },
       });
 
-      setImageName(response.filename);
-      setImageUrl(response.url);
-      setUploading(false);
-    } catch (err) {
-      console.error('Upload failed:', err);
+      setImageName(result.filename);
+      setImageUrl(result.url);
+      toast.success('Image uploaded successfully');
+    } catch (error) {
+      console.error('Upload failed:', error);
+      toast.error('Image upload failed');
+    } finally {
       setUploading(false);
     }
   };
@@ -42,7 +60,7 @@ const NewsForm = () => {
     const file = e.target.files[0];
     if (!file) return;
     previewFile(file);
-    handleImageUpload(file);
+    uploadImage(file);
   };
 
   const handleDrop = (e) => {
@@ -50,70 +68,104 @@ const NewsForm = () => {
     const file = e.dataTransfer.files[0];
     if (!file) return;
     previewFile(file);
-    handleImageUpload(file);
+    uploadImage(file);
   };
 
-  const previewFile = (file) => {
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = () => {
-      setPreview(reader.result);
-    };
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setSubmitting(true);
+
+    try {
+  
+      const payload = {
+        ...formData,
+        ...(imageUrl && { imgUrl: imageUrl }),
+        ...(imageName && { imgName: imageName }),
+      };
+
+      const response = await apiAuthenticated.post('/news', payload);
+
+      if (response.status === 201) {
+        toast.success('News submitted successfully!');
+          setTimeout(() => {
+        navigate('/view/news');
+      }, 2000);
+      } else {
+        toast.error('Failed to submit news');
+      }
+    } catch (err) {
+      toast.error(err?.response?.data?.message || 'Something went wrong');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
     <div className="bg-white border border-gray-200 rounded-xl shadow-lg p-10 max-w-4xl mx-auto">
-      <h2 className="text-3xl font-bold text-gray-800 mb-8 tracking-tight">📰 Add News </h2>
+      <ToastContainer />
+      <h2 className="text-3xl font-bold text-gray-800 mb-8">📰 Add News</h2>
 
-      <form className="space-y-8">
+      <form className="space-y-8" onSubmit={handleSubmit}>
         {/* Title */}
         <div>
-          <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
+          <label
+            htmlFor="title"
+            className="block text-sm font-medium text-gray-700 mb-2"
+          >
             Title <span className="text-red-500">*</span>
           </label>
           <input
             type="text"
             id="title"
             name="title"
+            value={formData.title}
+            onChange={handleChange}
             placeholder="Enter a catchy news title"
-            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg 
-            focus:ring-indigo-600 focus:border-indigo-600 block w-full p-3 shadow-sm"
+            className="bg-gray-50 border border-gray-300 rounded-lg p-3 w-full"
             required
           />
         </div>
 
         {/* Description */}
         <div>
-          <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
+          <label
+            htmlFor="description"
+            className="block text-sm font-medium text-gray-700 mb-2"
+          >
             Description <span className="text-red-500">*</span>
           </label>
           <textarea
             id="description"
             name="description"
+            value={formData.description}
+            onChange={handleChange}
             rows="6"
             placeholder="Enter detailed description..."
-            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg 
-            focus:ring-indigo-600 focus:border-indigo-600 block w-full p-3 shadow-sm resize-none"
+            className="bg-gray-50 border border-gray-300 rounded-lg p-3 w-full resize-none"
             required
           ></textarea>
         </div>
 
-        {/* Image Upload Field */}
+        {/* Image Upload */}
         <div className="pt-2">
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Upload Image <span className="text-gray-400">(Max 1MB)</span>
+            Upload Image{' '}
+            <span className="text-gray-400">(Optional, max 1MB)</span>
           </label>
           <div
-            id="dropzone"
-            className="w-full relative border-2 border-gray-300 border-dashed rounded-lg p-6 cursor-pointer transition hover:border-indigo-600 bg-gray-50"
+            className="w-full relative border-2 border-dashed border-gray-300 rounded-lg p-6 cursor-pointer bg-gray-50"
             onDragOver={(e) => e.preventDefault()}
-            onDragLeave={(e) => e.preventDefault()}
             onDrop={handleDrop}
           >
             <input
               type="file"
               accept="image/png,image/jpeg,image/jpg,image/gif"
-              className="absolute inset-0 w-full h-full opacity-0 z-50 cursor-pointer"
+              className="absolute inset-0 w-full h-full opacity-0 z-50"
               onChange={handleFileChange}
             />
             <div className="text-center">
@@ -122,22 +174,15 @@ const NewsForm = () => {
                 src="https://www.svgrepo.com/show/357902/image-upload.svg"
                 alt="Upload"
               />
-              <h3 className="mt-2 text-sm font-medium text-gray-900">
-                <span className="cursor-pointer">
-                  Drag and drop
-                  <span className="text-indigo-600"> or browse </span>
-                  to upload
-                </span>
-              </h3>
-              <p className="mt-1 text-xs text-gray-500">
-                PNG, JPG up to 1MB
+              <p className="mt-2 text-sm text-gray-500">
+                Drag and drop or browse
               </p>
-
-              {uploading && <p className="text-blue-500 text-sm mt-2">Uploading...</p>}
-              {!uploading && imageName && (
-                <p className="text-green-600 text-sm mt-2">Uploaded: {imageName}</p>
+              {uploading && (
+                <p className="text-blue-500 mt-2">Uploading...</p>
               )}
-
+              {!uploading && imageName && (
+                <p className="text-green-600 mt-2">Uploaded: {imageName}</p>
+              )}
               {preview && (
                 <img
                   src={preview}
@@ -149,14 +194,14 @@ const NewsForm = () => {
           </div>
         </div>
 
-        {/* Submit Button */}
+        {/* Submit */}
         <div className="pt-4">
           <button
             type="submit"
-            className="inline-block bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 
-            transition-all shadow-md text-sm font-semibold"
+            disabled={submitting}
+            className="bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 transition-all shadow-md text-sm font-semibold"
           >
-            Submit News
+            {submitting ? 'Submitting...' : 'Submit News'}
           </button>
         </div>
       </form>

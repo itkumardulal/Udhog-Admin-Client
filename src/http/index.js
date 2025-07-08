@@ -1,3 +1,4 @@
+
 import axios from "axios";
 
 const API = axios.create({
@@ -13,8 +14,19 @@ const apiAuthenticated = axios.create({
   headers: {
     "Content-Type": "application/json",
     Accept: "application/json",
-    Authorization: `localStorage.getItem('token)`,
   },
 });
 
-export { apiAuthenticated, API };
+
+apiAuthenticated.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
+export { API, apiAuthenticated };
