@@ -1,4 +1,5 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef,  } from 'react';
+import { useNavigate } from 'react-router-dom';
 import * as filestack from 'filestack-js';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -26,8 +27,12 @@ const CompanyForm = () => {
     vat: '',
     pan: '',
     description: '',
+    registrationDate: '',
+    membershipDate: '', 
+    membershipNo: '',
   });
 
+  const navigate = useNavigate()
   const [idType, setIdType] = useState('vat');
   const [pdfUrl, setPdfUrl] = useState('');
   const [pdfName, setPdfName] = useState('');
@@ -54,28 +59,7 @@ const CompanyForm = () => {
 
       if (response.status === 201) {
         toast.success('Company details submitted successfully!');
-        setData({
-          registrationNo: '',
-          companyNameEng: '',
-          companyNameNep: '',
-          email: '',
-          organizationType: '',
-          industry: '',
-          contactPerson: '',
-          phoneNo: '',
-          numberOfEmployees: '',
-          annualRevenue: '',
-          renewStatus: 'Active',
-          vat: '',
-          pan: '',
-          description: '',
-        });
-        setIdType('vat');
-        setPdfUrl('');
-        setPdfName('');
-        if (fileInputRef.current) {
-          fileInputRef.current.value = null; 
-        }
+        navigate('/view/companies');
       } else {
         toast.error("Failed to submit company details");
       }
@@ -135,6 +119,9 @@ const CompanyForm = () => {
             { id: "phoneNo", label: "Phone Number", type: "tel", placeholder: "9808765432" },
             { id: "numberOfEmployees", label: "Number of Employees", type: "number", placeholder: "35" },
             { id: "annualRevenue", label: "Annual Revenue", type: "number", placeholder: "8500000" },
+            { id: "membershipNo", label: "Membership No", type: "text", placeholder: "1234567" },
+            { id:'registrationDate', label:'Registration Date', type: 'date' } ,
+            {id:'membershipDate', label:'Membership Date', type: 'date' } // Added Membership Date
           ].map((field) => (
             <div key={field.id}>
               <label htmlFor={field.id} className="text-sm font-medium text-gray-900 block mb-2">

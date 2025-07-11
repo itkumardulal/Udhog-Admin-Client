@@ -94,7 +94,7 @@ const NewsForm = () => {
         toast.success('News submitted successfully!');
           setTimeout(() => {
         navigate('/view/news');
-      }, 2000);
+      }, 5000);
       } else {
         toast.error('Failed to submit news');
       }

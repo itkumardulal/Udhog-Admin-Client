@@ -17,8 +17,9 @@ const Company = () => {
     pan: "PAN",
     revenue: "Revenue",
     employees: "Employees",
-    renewStatus: "Status",
-    actions: "Actions",
+    membershipDate: "Membership Date",
+     renewStatus: "Status",
+     actions: "Actions",
   };
 
   const [companies, setCompanies] = useState([]);
@@ -170,6 +171,7 @@ const Company = () => {
                       <td className="p-4">{company.pan || "-"}</td>
                       <td className="p-4">{company.annualRevenue}</td>
                       <td className="p-4">{company.numberOfEmployees}</td>
+                      <td className="p-4">{company.membershipDate?.slice(0, 10)}</td>
                       <td className="p-4">
                         {company.renewStatus === "Active" ? (
                           <span className="px-3 py-1 text-green-700 bg-green-100 rounded-full text-xs font-medium">

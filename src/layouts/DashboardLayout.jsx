@@ -163,7 +163,7 @@ const DashboardLayout = () => {
       submenu: [],
     },
     {
-      name: "Purchases",
+      name: "Income",
       icon: (
         <path
           strokeLinecap="round"
@@ -173,9 +173,16 @@ const DashboardLayout = () => {
         />
       ),
       submenu: [
-        { name: "Purchase Entry/Bills", path: "#" },
-        { name: "Vendor Management", path: "#" },
-        { name: "Payment Made", path: "#" },
+        { name: "Add", path: "/add/income" ,  icon: (
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth="2"
+          d="M3 21V5a2 2 0 012-2h6v18H3z"
+        />
+      ),},
+        { name: "View", path: "/view/income" },
+        
       ],
       toggle: openPurchasesMenu,
       setToggle: setOpenPurchasesMenu,
@@ -191,8 +198,8 @@ const DashboardLayout = () => {
         />
       ),
       submenu: [
-        { name: "General Expense Entry", path: "#" },
-        { name: "Category-wise Expense Tracking", path: "#" },
+        { name: "Add", path: "/add/expense" },
+        { name: "View", path: "/view/expense" },
       ],
       toggle: openExpensesMenu,
       setToggle: setOpenExpensesMenu,

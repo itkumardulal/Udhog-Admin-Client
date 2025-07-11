@@ -112,6 +112,9 @@ const CompanyEdit = () => {
             { id: "phoneNo", label: "Phone Number", type: "tel", placeholder: "9808765432" },
             { id: "numberOfEmployees", label: "Number of Employees", type: "number", placeholder: "35" },
             { id: "annualRevenue", label: "Annual Revenue", type: "number", placeholder: "8500000" },
+            { id: "membershipNo", label: "Membership No", type: "text", placeholder: "1234567" },
+            { id:'registrationDate', label:'Registration Date', type: 'date' } ,
+            {id:'membershipDate', label:'Membership Date', type: 'date' }
           ].map((field) => (
             <div key={field.id}>
               <label htmlFor={field.id} className="text-sm font-medium text-gray-900 block mb-2">
