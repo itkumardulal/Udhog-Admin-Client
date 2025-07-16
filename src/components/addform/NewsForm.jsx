@@ -40,8 +40,7 @@ const NewsForm = () => {
     try {
       const result = await client.upload(file, {
         onProgress: (evt) => {
-          // Optional: handle progress here
-          // console.log(`Upload progress: ${evt.totalPercent.toFixed(2)}%`);
+       
         },
       });
 

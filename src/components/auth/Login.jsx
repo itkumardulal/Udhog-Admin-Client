@@ -71,6 +71,7 @@ const navigate = useNavigate()
                   <input
                     name='email'
                     type="email"
+                    autoComplete="email"
                     required
                     className="w-full px-4 py-3 pr-10 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-600 focus:border-transparent outline-none transition-colors"
                     placeholder="you@example.com"
@@ -102,6 +103,7 @@ const navigate = useNavigate()
                   <input
                     name='password'
                     type="password"
+                     autoComplete="current-password"
                     required
                     className="w-full px-4 py-3 pr-10 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-600 focus:border-transparent outline-none transition-colors"
                     placeholder="••••••••"
