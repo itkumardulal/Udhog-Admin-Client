@@ -113,7 +113,7 @@ function Notice() {
                         );
                       }}
                       title="Download"
-                      className="p-2 rounded-full bg-white group transition-all duration-500 hover:bg-gray-200 flex items-center"
+                      className="p-2 rounded-full bg-white group transition-all duration-500 hover:bg-gray-200 flex items-center hover:cursor-pointer"
                     >
                       <svg
                         xmlns="http://www.w3.org/2000/svg"

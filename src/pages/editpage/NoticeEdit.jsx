@@ -198,7 +198,7 @@ const NoticeEdit = () => {
           <button
             type="submit"
             className="inline-block bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 
-            transition-all shadow-md text-sm font-semibold"
+            transition-all shadow-md text-sm font-semibold hover:cursor-pointer"
           >
             Update Notice
           </button>

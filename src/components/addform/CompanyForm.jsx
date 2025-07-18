@@ -17,71 +17,66 @@ const CompanyForm = () => {
       id: "organizationType",
       name: "organizationType",
       options: ["Private", "Partnership", "Individual"],
-      required: true,
-    },
-    {
-      label: "Industry Type",
-      id: "industryType",
-      name: "industryType",
-      options: ["Media", "IT", "Suppliers", "Manufacturing", "NGO"],
-      required: true,
     },
     {
       label: "Membership Type",
       id: "membershipType",
       name: "membershipType",
       options: ["Lifetime", "Normal", "Associate", "Sakha", "Manyartha"],
-      required: true,
     },
     {
       label: "Business Nature",
       id: "businessNature",
       name: "businessNature",
       options: ["Udhog", "Badihya", "Nikaya"],
-      required: true,
     },
     {
       label: "Renew Status",
       id: "renewStatus",
       name: "renewStatus",
       options: ["Active", "Inactive"],
-      required: true,
     },
-
     {
-      label:'Leadership Gender',
-      id:'leadershipGender',
-      name:'leadershipGender',
-      options:['Male','Female','Others'],
-      required:true
-    }
+      label: "Leadership Gender",
+      id: "leadershipGender",
+      name: "leadershipGender",
+      options: ["Male", "Female", "Others"],
+    },
+    {
+      label: "Industry Type",
+      id: "industryType",
+      name: "industryType",
+      options: ["Media", "IT", "Suppliers", "Manufacturing", "NGO", "Others"], // <-- Added Others
+    },
   ];
 
- const [data, setData] = useState({
-  registrationNo: "",
-  companyNameEng: "",
-  companyNameNep: "",
-  address: "",
-  email: "",
-  organizationType: "Private",
-  contactPerson: "",
-  phoneNo: "",
-  numberOfEmployees: "",
-  capital: "",
-  renewStatus: "Active",
-  vat: "",
-  pan: "",
-  description: "", 
-  registrationDate: "", 
-  membershipDate: "",
-  membershipNo: "",
-  membershipType: "Lifetime",
-  industryType: "IT",
-  businessNature: "Udhog",
-  telPhone: "", 
-  leadershipGender: "Male"
-});
+  const [data, setData] = useState({
+    registrationNo: "",
+    companyNameEng: "",
+    companyNameNep: "",
+    address: "",
+    email: "",
+    organizationType: "Private",
+    contactPerson: "",
+    phoneNo: "",
+    numberOfEmployees: "",
+    capital: "",
+    renewStatus: "Active",
+    vat: "",
+    pan: "",
+    description: "",
+    registrationDate: "",
+    membershipDate: "",
+    membershipNo: "",
+    membershipType: "Lifetime",
+    industryType: "IT",
+    businessNature: "Udhog",
+    telPhone: "",
+    leadershipGender: "Male",
+  });
 
+  // State to hold custom industry type when "Others" is selected
+  const [customIndustry, setCustomIndustry] = useState("");
 
   const [idType, setIdType] = useState("vat");
   const [uploadingField, setUploadingField] = useState(null);
@@ -97,7 +92,16 @@ const CompanyForm = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+
+    // Clear customIndustry input if user changes Industry Type to anything other than "Others"
+    if (name === "industryType" && value !== "Others") {
+      setCustomIndustry("");
+    }
     setData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleCustomIndustryChange = (e) => {
+    setCustomIndustry(e.target.value);
   };
 
   const handleFileUpload = async (e, field, type = "image") => {
@@ -137,11 +141,24 @@ const CompanyForm = () => {
     e.preventDefault();
     setSubmitting(true);
     try {
-      const payload = { ...data, ...fileUrls };
+      // If user selected Others and filled customIndustry, send that instead of "Others"
+      const industryValue =
+        data.industryType === "Others" && customIndustry.trim() !== ""
+          ? customIndustry.trim()
+          : data.industryType;
+
+      const payload = {
+        ...data,
+        industryType: industryValue,
+        ...fileUrls,
+      };
+
       const res = await apiAuthenticated.post("/company", payload);
       if (res.status === 201) {
-        toast.success("Company created!");
-        navigate("/view/companies");
+        toast.success("Company added successfully!");
+        setTimeout(() => {
+          navigate("/view/companies");
+        }, 3000);
       } else {
         toast.error("Failed to submit");
       }
@@ -164,16 +181,11 @@ const CompanyForm = () => {
           fill="currentColor"
           viewBox="0 0 24 24"
         >
-          <path
-            d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
-            opacity=".3"
-          />
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" opacity=".3" />
           <path d="M14 2v6h6" />
           <path d="M16 13H8v-2h8v2zm0 4H8v-2h8v2z" />
         </svg>
-        <span className="text-gray-500 text-xs">
-          Click to upload image (max 1MB)
-        </span>
+        <span className="text-gray-500 text-xs">Click to upload image (max 1MB)</span>
         {uploading && uploadingField === id && (
           <span className="text-blue-600 text-xs mt-1">Uploading...</span>
         )}
@@ -194,24 +206,20 @@ const CompanyForm = () => {
 
   return (
     <div className="bg-white border border-gray-200 rounded-xl shadow-lg p-8 max-w-7xl mx-auto">
-      <ToastContainer position="top-right" autoClose={3000} />
-      <h2 className="text-2xl font-semibold text-gray-800 mb-6">
-        Add Company Details
-      </h2>
+      <ToastContainer position="top-right" autoClose={2000} />
+      <h2 className="text-2xl font-semibold text-gray-800 mb-6">Add Company Details</h2>
 
       <form onSubmit={handleSubmit}>
-        <h3 className="text-2xl font-semibold text-gray-500 mb-8 text-center">
-          Company Information
-        </h3>
+        <h3 className="text-2xl font-semibold text-gray-500 mb-8 text-center">Company Information</h3>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+          {/* Other input fields */}
           {[
             {
               id: "registrationNo",
               label: "Registration No",
               type: "number",
               placeholder: "223344",
-              required: true,
             },
             {
               id: "membershipNo",
@@ -225,7 +233,6 @@ const CompanyForm = () => {
               label: "Company Name (English)",
               type: "text",
               placeholder: "Nepal Digital Media Hub",
-              required: true,
             },
             {
               id: "companyNameNep",
@@ -245,14 +252,13 @@ const CompanyForm = () => {
               type: "tel",
               placeholder: "9808765432",
             },
-
             {
               id: "address",
               label: "Address",
               type: "text",
               placeholder: " Bazar",
+              required: true,
             },
-
             {
               id: "numberOfEmployees",
               label: "Number of Employees",
@@ -289,11 +295,12 @@ const CompanyForm = () => {
                 onChange={handleChange}
                 className="shadow-sm bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg 
                 focus:ring-indigo-600 focus:border-indigo-600 block w-full p-2.5"
-                required
+                required={field.required || false}
               />
             </div>
           ))}
 
+          {/* Select Fields */}
           {selectFields.map((field) => (
             <div key={field.id} className="mb-4">
               <label
@@ -318,15 +325,26 @@ const CompanyForm = () => {
                   </option>
                 ))}
               </select>
+
+              {/* Show custom input if Industry Type is "Others" */}
+              {field.name === "industryType" && data.industryType === "Others" && (
+                <input
+                  type="text"
+                  value={customIndustry}
+                  onChange={handleCustomIndustryChange}
+                  placeholder="Please specify your Industry Type"
+                  className="mt-2 shadow-sm bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg
+                   focus:ring-indigo-600 focus:border-indigo-600 block w-full p-2.5"
+                  required
+                />
+              )}
             </div>
           ))}
         </div>
 
         {/* VAT / PAN Section */}
         <div className="mt-10">
-          <label className="block text-sm font-medium text-gray-900 mb-2">
-            Choose VAT/PAN
-          </label>
+          <label className="block text-sm font-medium text-gray-900 mb-2">Choose VAT/PAN</label>
           <div className="flex space-x-6">
             {["vat", "pan"].map((type) => (
               <label key={type} className="flex items-center text-gray-700">
@@ -344,10 +362,7 @@ const CompanyForm = () => {
           </div>
 
           <div className="mt-4">
-            <label
-              htmlFor={idType}
-              className="text-sm font-medium text-gray-900 block mb-2"
-            >
+            <label htmlFor={idType} className="text-sm font-medium text-gray-900 block mb-2">
               {idType.toUpperCase()} Number
             </label>
             <input
@@ -366,10 +381,7 @@ const CompanyForm = () => {
 
         {/* Description */}
         <div className="mt-8">
-          <label
-            htmlFor="description"
-            className="text-sm font-medium text-gray-900 block mb-2"
-          >
+          <label htmlFor="description" className="text-sm font-medium text-gray-900 block mb-2">
             Company Description
           </label>
           <textarea
@@ -388,9 +400,7 @@ const CompanyForm = () => {
         <FileUploadField id="registrationUpload" label="Registration Upload" />
 
         {/* Owner Info */}
-        <h3 className="text-2xl font-semibold text-gray-500 my-8 text-center">
-          Owner Information
-        </h3>
+        <h3 className="text-2xl font-semibold text-gray-500 my-8 text-center">Owner Information</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
           {[
             { id: "contactPerson", label: "Owner Name", type: "text" },
@@ -412,7 +422,6 @@ const CompanyForm = () => {
                 onChange={handleChange}
                 className="shadow-sm bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg 
                 focus:ring-indigo-600 focus:border-indigo-600 block w-full p-2.5"
-                required
               />
             </div>
           ))}
@@ -427,7 +436,7 @@ const CompanyForm = () => {
           <button
             type="submit"
             disabled={submitting}
-            className="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 transition-all shadow-md text-sm font-semibold flex items-center justify-center gap-2"
+            className="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 transition-all shadow-md text-sm font-semibold flex items-center justify-center gap-2 hover:cursor-pointer"
           >
             {submitting ? (
               <>
@@ -445,11 +454,7 @@ const CompanyForm = () => {
                     stroke="currentColor"
                     strokeWidth="4"
                   />
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8v8H4z"
-                  />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
                 </svg>
                 Submitting...
               </>

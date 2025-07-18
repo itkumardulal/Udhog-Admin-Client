@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { API, apiAuthenticated } from "../http";
+import { apiAuthenticated } from "../http";
 import { Link } from "react-router-dom";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -37,7 +37,7 @@ const Company = () => {
 
   const fetchCompanies = async () => {
     try {
-      const response = await API.get("company");
+      const response = await apiAuthenticated.get("company");
       if (response.status === 200) {
         setCompanies(response.data.data);
       } else {
@@ -205,7 +205,7 @@ const Company = () => {
                         <div className="flex gap-2 items-center">
                           {/* edit svg */}
                           <Link to={`/edit/company/${company.id}`}>
-                            <button className="p-2 rounded-full bg-white group transition-all duration-500 hover:bg-indigo-600 flex items-center">
+                            <button className="p-2 rounded-full bg-white group transition-all duration-500 hover:bg-indigo-600 flex items-center ">
                               <svg
                                 className="cursor-pointer"
                                 width={20}
@@ -224,7 +224,7 @@ const Company = () => {
                           </Link>
                           <button
                             onClick={() => deleteCompany(company.id)}
-                            className="p-2 rounded-full bg-white group transition-all duration-500 hover:bg-red-600 flex items-center"
+                            className="p-2 rounded-full bg-white group transition-all duration-500 hover:bg-red-600 flex items-center hover:cursor-pointer"
                           >
                             <svg
                               className="w-5 h-5 text-red-500 group-hover:text-white"

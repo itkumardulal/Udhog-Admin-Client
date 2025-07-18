@@ -82,7 +82,7 @@ function News() {
                     <button
                       onClick={() => setSelectedNews(news)}
                       title="View"
-                      className="p-2 rounded-full bg-white group transition-all duration-500 hover:bg-gray-200 flex items-center"
+                      className="p-2 rounded-full bg-white group transition-all duration-500 hover:bg-gray-200 flex items-center hover:cursor-pointer"
                     >
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -182,13 +182,17 @@ function News() {
             {selectedNews.title}
           </h2>
 
-          {selectedNews.imgUrl && (
+          {selectedNews.imgUrl ? (
             <div className="border border-gray-300 rounded-lg p-4 sm:p-6 bg-gray-50 flex justify-center">
               <img
                 src={selectedNews.imgUrl}
                 alt={selectedNews.title}
                 className="max-w-full h-auto sm:max-h-[500px]"
               />
+            </div>
+          ) : (
+            <div className="border border-gray-300 rounded-lg p-4 sm:p-6 bg-gray-50 flex justify-center items-center min-h-[200px]">
+              <p className="text-gray-500 italic">No image to preview.</p>
             </div>
           )}
 
