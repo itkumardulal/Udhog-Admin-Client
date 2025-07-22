@@ -21,6 +21,7 @@ import AddIncome from './components/account/AddIncome';
 import ViewIncome from './components/account/ViewIncome';
 import AddExpense from './components/account/AddExpense.jsx';
 import ViewExpense from './components/account/ViewExpense.jsx';
+import CompanyView from './components/view/CompanyView.jsx';
 
 
 const App = () => {
@@ -55,6 +56,8 @@ const App = () => {
             <Route path="add/expense" element={<AddExpense/>} />
             <Route path="view/income" element={<ViewIncome/>} />
             <Route path="view/expense" element={<ViewExpense/>} />
+            <Route path="/view/company/:id" element={<CompanyView/>} />
+
           </Route>
         </Routes>
 

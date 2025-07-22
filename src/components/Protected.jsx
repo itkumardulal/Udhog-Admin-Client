@@ -1,27 +1,16 @@
+
 import { Navigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-
-import { API } from "../http";
 import Loader from "../loader/Loader";
+import { API } from "../http";
 
 const Protect = ({ children }) => {
   const [isValid, setIsValid] = useState(null);
 
   useEffect(() => {
     const verifyToken = async () => {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        setIsValid(false);
-        return;
-      }
-
       try {
-        const res = await API.get("/verify", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
+        const res = await API.get("/verify");
         if (res.data.success) {
           setIsValid(true);
         } else {

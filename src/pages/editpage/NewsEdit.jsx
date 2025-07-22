@@ -1,91 +1,58 @@
 import React, { useEffect, useState } from 'react';
-import * as filestack from 'filestack-js';
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { apiAuthenticated } from '../../http';
 import 'react-toastify/dist/ReactToastify.css';
 
-const client = filestack.init(import.meta.env.VITE_FILESTACK_API_KEY);
-
 const NewsEdit = () => {
   const { id } = useParams();
   const navigate = useNavigate();
 
+  // Form fields
   const [formData, setFormData] = useState({
     title: '',
-    description: ''
+    description: '',
   });
 
-  const [preview, setPreview] = useState(null);
-  const [uploading, setUploading] = useState(false);
-  const [imageName, setImageName] = useState('');
-  const [imageUrl, setImageUrl] = useState('');
+  // File info states
+  const [selectedFile, setSelectedFile] = useState(null); // new file to upload
+  const [imageUrl, setImageUrl] = useState(''); // current stored image url
+  const [imageName, setImageName] = useState(''); // current stored image name
+  const [preview, setPreview] = useState(''); // preview src (new or existing)
 
+  const [uploading, setUploading] = useState(false);
+
+  // Fetch news data on mount
+  useEffect(() => {
+    fetchNewsData();
+  }, []);
+
+  // Update preview if imageUrl changes and no new file selected
+  useEffect(() => {
+    if (imageUrl && !selectedFile) {
+      setPreview(imageUrl);
+    }
+  }, [imageUrl, selectedFile]);
+
+  // Fetch existing news
   const fetchNewsData = async () => {
     try {
       const response = await apiAuthenticated.get(`/news/${id}`);
       if (response.status === 200) {
         const news = response.data.data;
         setFormData({ title: news.title, description: news.description });
-        setImageName(news.imageName || '');
-        setImageUrl(news.imageUrl || '');
-        if (news.imageUrl) {
-          setImageUrl(news.imageUrl);
-          setPreview(news.imageUrl); 
-        }
+        setImageName(news.imgName || '');
+        setImageUrl(news.imgUrl || '');
+        setPreview(news.imgUrl || '');
       } else {
         toast.error('Failed to fetch news data');
       }
-    } catch (err) {
+    } catch (error) {
       toast.error('Error fetching news data');
     }
   };
 
-  useEffect(() => {
-    fetchNewsData();
-  }, []);
-
-  const handleImageUpload = async (file) => {
-    if (!file || !file.type.startsWith('image/')) {
-      toast.error('Only image files are allowed.');
-      return;
-    }
-
-    if (file.size > 1024 * 1024) {
-      toast.error('File must be less than 1MB');
-      return;
-    }
-
-    setUploading(true);
-
-    try {
-      const response = await client.upload(file);
-      setImageName(response.filename);
-      setImageUrl(response.url);
-      toast.success('Image uploaded successfully');
-    } catch (err) {
-      console.error('Upload failed:', err);
-      toast.error('Failed to upload image');
-    } finally {
-      setUploading(false);
-    }
-  };
-
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    previewFile(file);
-    handleImageUpload(file);
-  };
-
-  const handleDrop = (e) => {
-    e.preventDefault();
-    const file = e.dataTransfer.files[0];
-    if (!file) return;
-    previewFile(file);
-    handleImageUpload(file);
-  };
-
+  // Preview file locally
   const previewFile = (file) => {
     const reader = new FileReader();
     reader.readAsDataURL(file);
@@ -94,131 +61,170 @@ const NewsEdit = () => {
     };
   };
 
+  // When user selects a file
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast.error('Only image files are allowed.');
+      return;
+    }
+    if (file.size > 1024 * 1024) {
+      toast.error('File size must be less than 1MB.');
+      return;
+    }
+
+    setSelectedFile(file);
+    previewFile(file);
+  };
+
+  // Remove selected or existing image
+  const removeImage = () => {
+    setSelectedFile(null);
+    setPreview('');
+    setImageUrl('');
+    setImageName('');
+  };
+
+  // Handle input changes
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  // Submit updated news
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const payload = {
-      ...formData,
-      imageUrl,
-      imageName
-    };
+    if (!formData.title.trim() || !formData.description.trim()) {
+      toast.error('Please provide title and description.');
+      return;
+    }
 
+    const data = new FormData();
+    data.append('title', formData.title);
+    data.append('description', formData.description);
+
+    if (selectedFile) {
+      data.append('file', selectedFile);
+    } else {
+      // Send existing image info if no new file
+      data.append('imgUrl', imageUrl);
+      data.append('imgName', imageName);
+    }
+
+    setUploading(true);
     try {
-      const response = await apiAuthenticated.patch(`/news/${id}`, payload);
+      const response = await apiAuthenticated.patch(`/news/${id}`, data, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
       if (response.status === 200) {
         toast.success('News updated successfully!');
-        navigate('/view/news'); 
+        navigate('/view/news');
       } else {
-        toast.error('Failed to update news');
+        toast.error('Failed to update news.');
       }
-    } catch (err) {
-      toast.error('Error updating news');
+    } catch (error) {
+      toast.error('Error updating news.');
+    } finally {
+      setUploading(false);
     }
   };
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl shadow-lg p-10 max-w-4xl mx-auto">
-      <h2 className="text-3xl font-bold text-gray-800 mb-8 tracking-tight">📰 Add News </h2>
-
+    <div className="max-w-4xl mx-auto p-10 bg-white rounded-xl shadow-lg border border-gray-200">
+      <h2 className="text-3xl font-bold mb-8 text-gray-800">📰 Edit News</h2>
       <form className="space-y-8" onSubmit={handleSubmit}>
+
         {/* Title */}
         <div>
-          <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
+          <label htmlFor="title" className="block mb-2 font-medium text-gray-700">
             Title <span className="text-red-500">*</span>
           </label>
           <input
-            type="text"
             id="title"
             name="title"
+            type="text"
+            placeholder="Enter news title"
             value={formData.title}
             onChange={handleChange}
-            placeholder="Enter a catchy news title"
-            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg 
-            focus:ring-indigo-600 focus:border-indigo-600 block w-full p-3 shadow-sm"
             required
+            className="w-full p-3 text-gray-900 border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-600 focus:border-indigo-600"
           />
         </div>
 
         {/* Description */}
         <div>
-          <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
+          <label htmlFor="description" className="block mb-2 font-medium text-gray-700">
             Description <span className="text-red-500">*</span>
           </label>
           <textarea
             id="description"
             name="description"
             rows="6"
+            placeholder="Enter news description"
             value={formData.description}
             onChange={handleChange}
-            placeholder="Enter detailed description..."
-            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg 
-            focus:ring-indigo-600 focus:border-indigo-600 block w-full p-3 shadow-sm resize-none"
             required
-          ></textarea>
+            className="w-full p-3 text-gray-900 border border-gray-300 rounded-lg shadow-sm resize-none focus:ring-indigo-600 focus:border-indigo-600"
+          />
         </div>
 
-        {/* Image Upload Field */}
-        <div className="pt-2">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+        {/* Image Upload */}
+        <div>
+          <label className="block mb-2 font-medium text-gray-700">
             Upload Image <span className="text-gray-400">(Max 1MB)</span>
           </label>
-          <div
-            id="dropzone"
-            className="w-full relative border-2 border-gray-300 border-dashed rounded-lg p-6 cursor-pointer transition hover:border-indigo-600 bg-gray-50"
-            onDragOver={(e) => e.preventDefault()}
-            onDragLeave={(e) => e.preventDefault()}
-            onDrop={handleDrop}
-          >
-            <input
-              type="file"
-              accept="image/png,image/jpeg,image/jpg,image/gif"
-              className="absolute inset-0 w-full h-full opacity-0 z-50 cursor-pointer"
-              onChange={handleFileChange}
-            />
-            <div className="text-center">
+          {!preview ? (
+            <div className="relative cursor-pointer border-2 border-dashed border-gray-300 rounded-lg p-6 bg-gray-50 text-center hover:border-indigo-600"
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={(e) => {
+                e.preventDefault();
+                const file = e.dataTransfer.files[0];
+                if (file) handleFileChange({ target: { files: [file] } });
+              }}>
+              <input
+                type="file"
+                accept="image/*"
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                onChange={handleFileChange}
+              />
               <img
-                className="mx-auto h-12 w-12"
+                className="mx-auto mb-2 h-12 w-12"
                 src="https://www.svgrepo.com/show/357902/image-upload.svg"
                 alt="Upload"
               />
-              <h3 className="mt-2 text-sm font-medium text-gray-900">
-                <span className="cursor-pointer">
-                  Drag and drop
-                  <span className="text-indigo-600"> or browse </span>
-                  to upload
-                </span>
-              </h3>
-              <p className="mt-1 text-xs text-gray-500">PNG, JPG up to 1MB</p>
-
-              {uploading && <p className="text-blue-500 text-sm mt-2">Uploading...</p>}
-              {!uploading && imageName && (
-                <p className="text-green-600 text-sm mt-2">Uploaded: {imageName}</p>
-              )}
-
-              {preview && (
-                <img
-                  src={preview}
-                  alt="Preview"
-                  className="mt-4 mx-auto max-h-40 rounded shadow"
-                />
-              )}
+              <p className="text-sm font-medium text-gray-900">
+                Drag and drop or <span className="text-indigo-600">browse</span> to upload
+              </p>
+              <p className="text-xs text-gray-500 mt-1">PNG, JPG up to 1MB</p>
+              {uploading && <p className="mt-2 text-blue-500 text-sm">Uploading...</p>}
             </div>
-          </div>
+          ) : (
+            <div className="relative w-fit mx-auto mt-2">
+              <img src={preview} alt="Preview" className="max-h-40 rounded border shadow-md" />
+              <button
+                type="button"
+                onClick={removeImage}
+                title="Remove image"
+                className="absolute -top-2 -right-2 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-700"
+              >
+                ✕
+              </button>
+              <p className="mt-1 text-center text-green-600 text-sm">Uploaded: {selectedFile ? selectedFile.name : imageName}</p>
+            </div>
+          )}
         </div>
 
-        {/* Submit Button */}
-        <div className="pt-4">
+        {/* Submit */}
+        <div>
           <button
             type="submit"
-            className="inline-block bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 
-            transition-all shadow-md text-sm font-semibold hover:cursor-pointer"
+            disabled={uploading}
+            className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-lg font-semibold shadow-md transition disabled:opacity-50 hover:cursor-pointer"
           >
-            Submit News
+            {uploading ? 'Updating...' : 'Update News'}
           </button>
         </div>
       </form>

@@ -1,19 +1,23 @@
 import React, { useEffect, useState } from "react";
 import { API, apiAuthenticated } from "../../http";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 function News() {
   const [selectedNews, setSelectedNews] = useState(null);
   const [newsList, setNewsList] = useState([]);
+
   const fetchNews = async () => {
     try {
       const response = await API.get("/news");
       if (response.status === 200) {
-        setNewsList(response.data.data);
+         const sortedNews = response.data.data.sort(
+          (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+        );
+        setNewsList(sortedNews);
       } else {
-        console.error("Failed to fetch news:", response.statusText);
+        console.error("Failed to fetch news:");
       }
     } catch (error) {
       console.error("Error fetching news:", error);
@@ -26,7 +30,7 @@ function News() {
 
   const deleteNews = async (newsId) => {
     try {
-      const response = await apiAuthenticated.delete(`news/${newsId}`);
+      const response = await apiAuthenticated.delete(`/news/${newsId}`);
       if (response.status === 200) {
         toast.success("News deleted successfully!");
         setNewsList((prev) => prev.filter((news) => news.id !== newsId));
@@ -82,7 +86,7 @@ function News() {
                     <button
                       onClick={() => setSelectedNews(news)}
                       title="View"
-                      className="p-2 rounded-full bg-white group transition-all duration-500 hover:bg-gray-200 flex items-center hover:cursor-pointer"
+                      className="p-2 rounded-full bg-white group hover:bg-gray-200 transition-all"
                     >
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -107,7 +111,7 @@ function News() {
 
                     {/* Edit Button */}
                     <Link to={`/edit/news/${news.id}`}>
-                      <button className="p-2 rounded-full bg-white group transition-all duration-500 hover:bg-indigo-600 flex items-center">
+                      <button className="p-2 rounded-full bg-white group hover:bg-indigo-600 transition-all">
                         <svg
                           className=" w-6 h-6 cursor-pointer group-hover:fill-white"
                           viewBox="0 0 20 20"
@@ -134,7 +138,7 @@ function News() {
                           deleteNews(news.id);
                         }
                       }}
-                      className="p-2 rounded-full bg-white group transition-all duration-500 hover:bg-red-600 flex items-center"
+                      className="p-2 rounded-full bg-white group hover:bg-red-600 transition-all"
                       title="Delete"
                     >
                       <svg
@@ -159,7 +163,7 @@ function News() {
         <div className="space-y-6 flex-grow overflow-auto">
           <button
             onClick={() => setSelectedNews(null)}
-            className="flex items-center space-x-2 px-4 py-2 bg-blue-500 text-white rounded-md shadow hover:bg-blue-600 transition-all duration-200"
+            className="flex items-center space-x-2 px-4 py-2 bg-blue-500 text-white rounded-md shadow hover:bg-blue-600 transition-all"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -184,11 +188,17 @@ function News() {
 
           {selectedNews.imgUrl ? (
             <div className="border border-gray-300 rounded-lg p-4 sm:p-6 bg-gray-50 flex justify-center">
-              <img
-                src={selectedNews.imgUrl}
-                alt={selectedNews.title}
-                className="max-w-full h-auto sm:max-h-[500px]"
-              />
+              <a
+                href={selectedNews.imgUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <img
+                  src={selectedNews.imgUrl}
+                  alt={selectedNews.title}
+                  className="max-w-full h-auto sm:max-h-[500px] object-contain"
+                />
+              </a>
             </div>
           ) : (
             <div className="border border-gray-300 rounded-lg p-4 sm:p-6 bg-gray-50 flex justify-center items-center min-h-[200px]">
@@ -196,7 +206,9 @@ function News() {
             </div>
           )}
 
-          <p className="text-base text-gray-700">{selectedNews.description}</p>
+          <p className="text-base text-gray-700 whitespace-pre-wrap">
+            {selectedNews.description}
+          </p>
           <p className="text-sm text-gray-500 mt-4">
             Published At:{" "}
             {new Date(selectedNews.createdAt).toLocaleDateString()}

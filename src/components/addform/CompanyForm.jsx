@@ -1,12 +1,8 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import * as filestack from "filestack-js";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { apiAuthenticated } from "../../http";
-
-const apikey = import.meta.env.VITE_FILESTACK_API_KEY;
-const client = filestack.init(apikey);
 
 const CompanyForm = () => {
   const navigate = useNavigate();
@@ -22,7 +18,7 @@ const CompanyForm = () => {
       label: "Membership Type",
       id: "membershipType",
       name: "membershipType",
-      options: ["Lifetime", "Normal", "Associate", "Sakha", "Manyartha"],
+      options: ["Lifetime", "Normal", "Associate", "Sakha", "Manyartha", "Bastugat"],
     },
     {
       label: "Business Nature",
@@ -46,7 +42,7 @@ const CompanyForm = () => {
       label: "Industry Type",
       id: "industryType",
       name: "industryType",
-      options: ["Media", "IT", "Suppliers", "Manufacturing", "NGO", "Others"], // <-- Added Others
+      options: ["Media", "IT", "Suppliers", "Manufacturing", "NGO", "Others"],
     },
   ];
 
@@ -75,25 +71,19 @@ const CompanyForm = () => {
     leadershipGender: "Male",
   });
 
-  // State to hold custom industry type when "Others" is selected
   const [customIndustry, setCustomIndustry] = useState("");
-
   const [idType, setIdType] = useState("vat");
-  const [uploadingField, setUploadingField] = useState(null);
-  const [fileUrls, setFileUrls] = useState({
-    registrationUpload: "",
-    citizenshipFront: "",
-    citizenshipBack: "",
-    photo: "",
+  const [fileInputs, setFileInputs] = useState({
+    registration: null,
+    citizenshipFront: null,
+    citizenshipBack: null,
+    photo: null,
   });
   const [fileNames, setFileNames] = useState({});
-  const [uploading, setUploading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-
-    // Clear customIndustry input if user changes Industry Type to anything other than "Others"
     if (name === "industryType" && value !== "Others") {
       setCustomIndustry("");
     }
@@ -104,61 +94,59 @@ const CompanyForm = () => {
     setCustomIndustry(e.target.value);
   };
 
-  const handleFileUpload = async (e, field, type = "image") => {
+  const handleFileUpload = (e, field) => {
     const file = e.target.files[0];
     if (!file) return;
 
     const isImage = file.type.startsWith("image/");
-    const maxSize = 1 * 1024 * 1024; // 1MB
+    const maxSize = 1 * 1024 * 1024;
 
     if (file.size > maxSize) {
-      toast.error(`${field} file must be less than 1MB.`);
+      toast.error(`${field} must be under 1MB`);
       return;
     }
 
-    if (type === "image" && !isImage) {
-      toast.error(`${field} must be an image.`);
+    if (!isImage) {
+      toast.error(`${field} must be an image`);
       return;
     }
 
-    try {
-      setUploadingField(field);
-      setUploading(true);
-      const result = await client.upload(file, {}, {}, { filename: file.name });
-      setFileUrls((prev) => ({ ...prev, [field]: result.url }));
-      setFileNames((prev) => ({ ...prev, [field]: result.filename }));
-      toast.success(`${field} uploaded successfully!`);
-    } catch (err) {
-      console.error("Upload failed:", err);
-      toast.error(`Failed to upload ${field}`);
-    } finally {
-      setUploading(false);
-      setUploadingField(null);
-    }
+    setFileInputs((prev) => ({ ...prev, [field]: file }));
+    setFileNames((prev) => ({ ...prev, [field]: file.name }));
+    toast.success(`${field} img uploaded successfully`);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitting(true);
+
     try {
-      // If user selected Others and filled customIndustry, send that instead of "Others"
       const industryValue =
         data.industryType === "Others" && customIndustry.trim() !== ""
           ? customIndustry.trim()
           : data.industryType;
 
-      const payload = {
+      const formData = new FormData();
+      Object.entries({
         ...data,
         industryType: industryValue,
-        ...fileUrls,
-      };
+      }).forEach(([key, value]) => {
+        formData.append(key, value);
+      });
 
-      const res = await apiAuthenticated.post("/company", payload);
+      // Append files
+      if (fileInputs.registration) formData.append("registration", fileInputs.registration);
+      if (fileInputs.citizenshipFront) formData.append("citizenshipFront", fileInputs.citizenshipFront);
+      if (fileInputs.citizenshipBack) formData.append("citizenshipBack", fileInputs.citizenshipBack);
+      if (fileInputs.photo) formData.append("photo", fileInputs.photo);
+
+      const res = await apiAuthenticated.post("/company", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+
       if (res.status === 201) {
         toast.success("Company added successfully!");
-        setTimeout(() => {
-          navigate("/view/companies");
-        }, 3000);
+        setTimeout(() => navigate("/view/companies"), 3000);
       } else {
         toast.error("Failed to submit");
       }
@@ -171,28 +159,16 @@ const CompanyForm = () => {
 
   const FileUploadField = ({ id, label }) => (
     <div className="mt-6">
-      <label className="text-sm font-medium text-gray-900 block mb-2">
-        {label}
-      </label>
+      <label className="text-sm font-medium text-gray-900 block mb-2">{label}</label>
       <div className="relative group border-2 border-dashed border-blue-500 bg-gray-50 rounded-lg h-32 flex flex-col justify-center items-center hover:bg-blue-50 transition-colors duration-300">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          className="w-10 h-10 text-blue-600 mb-1 transition-transform duration-300 group-hover:scale-110"
-          fill="currentColor"
-          viewBox="0 0 24 24"
-        >
+        <svg xmlns="http://www.w3.org/2000/svg" className="w-10 h-10 text-blue-600 mb-1" fill="currentColor" viewBox="0 0 24 24">
           <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" opacity=".3" />
           <path d="M14 2v6h6" />
           <path d="M16 13H8v-2h8v2zm0 4H8v-2h8v2z" />
         </svg>
         <span className="text-gray-500 text-xs">Click to upload image (max 1MB)</span>
-        {uploading && uploadingField === id && (
-          <span className="text-blue-600 text-xs mt-1">Uploading...</span>
-        )}
-        {!uploading && fileNames[id] && (
-          <span className="text-green-600 text-xs mt-1 truncate w-[80%] text-center">
-            {fileNames[id]}
-          </span>
+        {fileNames[id] && (
+          <span className="text-green-600 text-xs mt-1 truncate w-[80%] text-center">{fileNames[id]}</span>
         )}
         <input
           type="file"
@@ -213,78 +189,22 @@ const CompanyForm = () => {
         <h3 className="text-2xl font-semibold text-gray-500 mb-8 text-center">Company Information</h3>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-          {/* Other input fields */}
           {[
-            {
-              id: "registrationNo",
-              label: "Registration No",
-              type: "number",
-              placeholder: "223344",
-            },
-            {
-              id: "membershipNo",
-              label: "Membership No",
-              type: "number",
-              placeholder: "1234567",
-              required: true,
-            },
-            {
-              id: "companyNameEng",
-              label: "Company Name (English)",
-              type: "text",
-              placeholder: "Nepal Digital Media Hub",
-            },
-            {
-              id: "companyNameNep",
-              label: "Company Name (Nepali)",
-              type: "text",
-              placeholder: "नेपाल डिजिटल मिडिया हब",
-            },
-            {
-              id: "email",
-              label: "Email",
-              type: "email",
-              placeholder: "admin@ndmh.com.np",
-            },
-            {
-              id: "telPhone",
-              label: "Telephone",
-              type: "tel",
-              placeholder: "9808765432",
-            },
-            {
-              id: "address",
-              label: "Address",
-              type: "text",
-              placeholder: " Bazar",
-              required: true,
-            },
-            {
-              id: "numberOfEmployees",
-              label: "Number of Employees",
-              type: "number",
-              placeholder: "35",
-            },
-            {
-              id: "capital",
-              label: "Capital",
-              type: "number",
-              placeholder: "8500000",
-            },
-            {
-              id: "registrationDate",
-              label: "Registration Date",
-              type: "date",
-            },
+            { id: "registrationNo", label: "Registration No", type: "number", placeholder: "223344" },
+            { id: "membershipNo", label: "Membership No", type: "number", placeholder: "1234567", required: true },
+            { id: "companyNameEng", label: "Company Name (English)", type: "text", placeholder: "Nepal Digital Media Hub" },
+            { id: "companyNameNep", label: "Company Name (Nepali)", type: "text", placeholder: "नेपाल डिजिटल मिडिया हब" },
+            { id: "email", label: "Email", type: "email", placeholder: "admin@ndmh.com.np" },
+            { id: "telPhone", label: "Telephone", type: "tel", placeholder: "9808765432" },
+            { id: "address", label: "Address", type: "text", placeholder: "Bazar", required: true },
+            { id: "numberOfEmployees", label: "Number of Employees", type: "number", placeholder: "35" },
+            { id: "capital", label: "Capital", type: "number", placeholder: "8500000" },
+            { id: "registrationDate", label: "Registration Date", type: "date" },
             { id: "membershipDate", label: "Membership Date", type: "date" },
           ].map((field) => (
             <div key={field.id}>
-              <label
-                htmlFor={field.id}
-                className="text-sm font-medium text-gray-900 block mb-2"
-              >
-                {field.label}{" "}
-                {field.required && <span className="text-red-500 text-lg">*</span>}
+              <label htmlFor={field.id} className="text-sm font-medium text-gray-900 block mb-2">
+                {field.label} {field.required && <span className="text-red-500 text-lg">*</span>}
               </label>
               <input
                 type={field.type}
@@ -300,15 +220,10 @@ const CompanyForm = () => {
             </div>
           ))}
 
-          {/* Select Fields */}
           {selectFields.map((field) => (
             <div key={field.id} className="mb-4">
-              <label
-                htmlFor={field.id}
-                className="text-sm font-medium text-gray-900 block mb-2"
-              >
-                {field.label}{" "}
-                {field.required && <span className="text-red-500 text-lg">*</span>}
+              <label htmlFor={field.id} className="text-sm font-medium text-gray-900 block mb-2">
+                {field.label}
               </label>
               <select
                 id={field.id}
@@ -320,13 +235,10 @@ const CompanyForm = () => {
                 required
               >
                 {field.options.map((option) => (
-                  <option key={option} value={option}>
-                    {option}
-                  </option>
+                  <option key={option} value={option}>{option}</option>
                 ))}
               </select>
 
-              {/* Show custom input if Industry Type is "Others" */}
               {field.name === "industryType" && data.industryType === "Others" && (
                 <input
                   type="text"
@@ -396,10 +308,9 @@ const CompanyForm = () => {
           ></textarea>
         </div>
 
-        {/* Upload Fields */}
-        <FileUploadField id="registrationUpload" label="Registration Upload" />
+        {/* File Uploads */}
+        <FileUploadField id="registration" label="Registration Upload" />
 
-        {/* Owner Info */}
         <h3 className="text-2xl font-semibold text-gray-500 my-8 text-center">Owner Information</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
           {[
@@ -407,10 +318,7 @@ const CompanyForm = () => {
             { id: "phoneNo", label: "Phone Number", type: "tel" },
           ].map((field) => (
             <div key={field.id}>
-              <label
-                htmlFor={field.id}
-                className="text-sm font-medium text-gray-900 block mb-2"
-              >
+              <label htmlFor={field.id} className="text-sm font-medium text-gray-900 block mb-2">
                 {field.label}
               </label>
               <input
@@ -431,7 +339,6 @@ const CompanyForm = () => {
         <FileUploadField id="citizenshipBack" label="Citizenship Back" />
         <FileUploadField id="photo" label="Owner Photo" />
 
-        {/* Submit */}
         <div className="mt-8">
           <button
             type="submit"
@@ -440,20 +347,8 @@ const CompanyForm = () => {
           >
             {submitting ? (
               <>
-                <svg
-                  className="animate-spin h-4 w-4 text-white"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  />
+                <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
                 </svg>
                 Submitting...

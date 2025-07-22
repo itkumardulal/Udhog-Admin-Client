@@ -12,9 +12,12 @@ function Notice() {
     try {
       const response = await API.get("/notices");
       if (response.status === 200) {
-        setNotices(response.data.data);
+          const sortedNotices = response.data.data.sort(
+          (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+        );
+        setNotices(sortedNotices);
       } else {
-        console.error("Failed to fetch notices:", response.statusText);
+        console.error("Failed to fetch notices:");
       }
     } catch (error) {
       console.error("Error fetching notices:", error);

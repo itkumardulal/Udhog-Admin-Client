@@ -6,35 +6,33 @@ import { API } from '../../http';
 
 const Login = () => {
 const navigate = useNavigate()
- const [data,setData]=useState({
-      email:'',
-      password:''
-  })
-   const handleChange= (e)=>{
-    const{name,value}=e.target
+  const [data, setData] = useState({
+    email: '',
+    password: '',
+  });
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
     setData({
       ...data,
-      [name]:value
-    })
-   }
+      [name]: value,
+    });
+  };
 
-    const handleClick= async (e)=>{
-    e.preventDefault()
+  const handleClick = async (e) => {
+    e.preventDefault();
     try {
-      const response=await API.post('login',data)
-      if(response.status === 200){
-        localStorage.setItem('token',response.data.token)
-        navigate('/')
-      }
-      else{
-        alert("Login failed")
+
+      const response = await API.post('login', data);
+      if (response.status === 200) {
+        navigate('/');
+      } else {
+        alert('Login failed');
       }
     } catch (error) {
-      alert(error?.response?.data?.message)
+      alert(error?.response?.data?.message || 'Something went wrong');
     }
-    
-  }
-   
+  };
    
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center">
@@ -132,7 +130,7 @@ const navigate = useNavigate()
                 type="submit"
                 className=" cursor-pointer w-full bg-red-600 text-white py-3 rounded-lg font-semibold hover:bg-red-700 focus:ring-4 focus:ring-red-600 focus:ring-opacity-50 transition-colors"
               >
-                Login In
+                Login
               </button>
             </form>
           </div>

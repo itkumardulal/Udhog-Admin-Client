@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
 import logo5 from "../assets/logo5.png";
+import { apiAuthenticated } from "../http";
 
 const DashboardLayout = () => {
   const navigate = useNavigate();
@@ -11,10 +12,15 @@ const DashboardLayout = () => {
   const [openLedgerMenu, setOpenLedgerMenu] = useState(false);
   const location = useLocation();
 
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    navigate("/login");
-  };
+const handleLogout = async () => {
+  try {
+    await apiAuthenticated.post('/logout');
+    navigate('/login');
+  } catch (error) {
+    console.error('Logout failed:', error);
+  }
+};
+
 
   const addSubmenu = [
     {
@@ -173,16 +179,19 @@ const DashboardLayout = () => {
         />
       ),
       submenu: [
-        { name: "Add", path: "/add/income" ,  icon: (
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth="2"
-          d="M3 21V5a2 2 0 012-2h6v18H3z"
-        />
-      ),},
+        {
+          name: "Add",
+          path: "/add/income",
+          icon: (
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              d="M3 21V5a2 2 0 012-2h6v18H3z"
+            />
+          ),
+        },
         { name: "View", path: "/view/income" },
-        
       ],
       toggle: openPurchasesMenu,
       setToggle: setOpenPurchasesMenu,
@@ -249,7 +258,7 @@ const DashboardLayout = () => {
           strokeLinejoin="round"
           strokeWidth="2"
           color="blue"
-        d="M9 12h6M9 16h6
+          d="M9 12h6M9 16h6
              M4 4h16v16H4V4zm12 2v4l-2-1-2 1V6h4z"
         />
       ),
@@ -447,7 +456,11 @@ const DashboardLayout = () => {
         {/* Logout */}
         <div className="mt-auto p-4 border-t">
           <button
-            onClick={handleLogout}
+            onClick={() => {
+              if (window.confirm("Do you want to logout?")) {
+                handleLogout();
+              }
+            }}
             className="w-full flex items-center px-4 py-2 text-base font-medium text-gray-700 hover:bg-red-100 hover:text-red-700 rounded-md transition-colors duration-200"
           >
             <svg
