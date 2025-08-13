@@ -32,7 +32,7 @@ const Home = () => {
 
   const buttons = [
     { label: "Add Company", color: "bg-purple-600 hover:bg-purple-700", path: "/add/company" },
-    { label: "Add Notice", color: "bg-blue-600 hover:bg-blue-700", path: "/add/notice" },
+    { label: "Add Notice", color: "bg-blue-600 hover:bg-blue-700", path: "/add/notices" },
     { label: "Add News", color: "bg-green-600 hover:bg-green-700", path: "/add/news" },
   ];
 
