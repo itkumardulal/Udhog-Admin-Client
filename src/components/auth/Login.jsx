@@ -11,7 +11,7 @@ const Login = () => {
     email: "",
     password: "",
   });
-  const [loading, setLoading] = useState(false); // loader state
+  const [loading, setLoading] = useState(false); 
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -23,11 +23,17 @@ const Login = () => {
 
   const handleClick = async (e) => {
     e.preventDefault();
+
+    if (loading) return; 
     setLoading(true);
+
     try {
       const response = await API.post("login", data);
+
       if (response.status === 200) {
-        toast.success("Login successful 🎉", { autoClose: 2000 });
+        toast.success("Login successful ", { autoClose: 2000 });
+
+
         setTimeout(() => navigate("/"), 2000);
       } else {
         toast.error("Login failed ❌");
@@ -83,22 +89,6 @@ const Login = () => {
                     placeholder="you@example.com"
                     onChange={handleChange}
                   />
-                  <div className="absolute right-3 top-3.5 text-gray-400">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="w-5 h-5"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                      strokeWidth={2}
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-                      />
-                    </svg>
-                  </div>
                 </div>
               </div>
 
@@ -117,28 +107,12 @@ const Login = () => {
                     placeholder="••••••••"
                     onChange={handleChange}
                   />
-                  <div className="absolute right-3 top-3.5 text-gray-400">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="w-5 h-5"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                      strokeWidth={2}
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M12 11c.552 0 1 .448 1 1v2a1 1 0 11-2 0v-2c0-.552.448-1 1-1zm0-6a4 4 0 00-4 4v2h8V9a4 4 0 00-4-4zm6 6H6v7a2 2 0 002 2h8a2 2 0 002-2v-7z"
-                      />
-                    </svg>
-                  </div>
                 </div>
               </div>
 
               <button
                 type="submit"
-                disabled={loading}
+                disabled={loading} 
                 className={`w-full py-3 rounded-lg font-semibold text-white transition-colors ${
                   loading
                     ? "bg-red-400 cursor-not-allowed"
