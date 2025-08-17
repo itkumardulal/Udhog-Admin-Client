@@ -1,15 +1,17 @@
-import { useNavigate } from 'react-router-dom';
-import logo from '../../assets/logo2.png';
-import { useState } from 'react';
-import { API } from '../../http';
-
+import { useNavigate } from "react-router-dom";
+import logo from "../../assets/logo2.png";
+import { useState } from "react";
+import { API } from "../../http";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const Login = () => {
-const navigate = useNavigate()
+  const navigate = useNavigate();
   const [data, setData] = useState({
-    email: '',
-    password: '',
+    email: "",
+    password: "",
   });
+  const [loading, setLoading] = useState(false); // loader state
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -21,21 +23,25 @@ const navigate = useNavigate()
 
   const handleClick = async (e) => {
     e.preventDefault();
+    setLoading(true);
     try {
-
-      const response = await API.post('login', data);
+      const response = await API.post("login", data);
       if (response.status === 200) {
-        navigate('/');
+        toast.success("Login successful 🎉", { autoClose: 2000 });
+        setTimeout(() => navigate("/"), 2000);
       } else {
-        alert('Login failed');
+        toast.error("Login failed ❌");
       }
     } catch (error) {
-      alert(error?.response?.data?.message || 'Something went wrong');
+      toast.error(error?.response?.data?.message || "Something went wrong");
+    } finally {
+      setLoading(false);
     }
   };
-   
+
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+      <ToastContainer />
       <div className="flex flex-col lg:flex-row w-full max-w-6xl shadow-2xl rounded-2xl overflow-hidden bg-white">
         {/* Left - Login Form */}
         <div className="w-full lg:w-1/2 p-10 flex items-center justify-center">
@@ -64,10 +70,12 @@ const navigate = useNavigate()
             <form onSubmit={handleClick}>
               {/* Email Field */}
               <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Email Address
+                </label>
                 <div className="relative">
                   <input
-                    name='email'
+                    name="email"
                     type="email"
                     autoComplete="email"
                     required
@@ -96,12 +104,14 @@ const navigate = useNavigate()
 
               {/* Password Field */}
               <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-700 mb-2">Password</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Password
+                </label>
                 <div className="relative">
                   <input
-                    name='password'
+                    name="password"
                     type="password"
-                     autoComplete="current-password"
+                    autoComplete="current-password"
                     required
                     className="w-full px-4 py-3 pr-10 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-600 focus:border-transparent outline-none transition-colors"
                     placeholder="••••••••"
@@ -128,9 +138,40 @@ const navigate = useNavigate()
 
               <button
                 type="submit"
-                className=" cursor-pointer w-full bg-red-600 text-white py-3 rounded-lg font-semibold hover:bg-red-700 focus:ring-4 focus:ring-red-600 focus:ring-opacity-50 transition-colors"
+                disabled={loading}
+                className={`w-full py-3 rounded-lg font-semibold text-white transition-colors ${
+                  loading
+                    ? "bg-red-400 cursor-not-allowed"
+                    : "bg-red-600 hover:bg-red-700 cursor-pointer"
+                }`}
               >
-                Login
+                {loading ? (
+                  <div className="flex items-center justify-center gap-2">
+                    <svg
+                      className="animate-spin h-5 w-5 text-white"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      ></circle>
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                      ></path>
+                    </svg>
+                    Logging in...
+                  </div>
+                ) : (
+                  "Login"
+                )}
               </button>
             </form>
           </div>
